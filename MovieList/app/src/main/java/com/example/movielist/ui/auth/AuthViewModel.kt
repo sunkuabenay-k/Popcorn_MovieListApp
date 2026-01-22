@@ -11,8 +11,25 @@ class AuthViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
+    val authState: StateFlow<AuthState> = _authState
+
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState
+
+    init {
+        refreshAuth()
+    }
+
+    private fun refreshAuth() {
+        viewModelScope.launch {
+            _authState.value =
+                if (userRepository.getUser() != null)
+                    AuthState.Authenticated
+                else
+                    AuthState.Unauthenticated
+        }
+    }
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
@@ -20,12 +37,26 @@ class AuthViewModel(
 
             val result = userRepository.login(email, password)
 
-            _uiState.value =
-                if (result.isSuccess) AuthUiState.Success
-                else AuthUiState.Error(result.exceptionOrNull()?.message ?: "Error")
+            if (result.isSuccess) {
+                _uiState.value = AuthUiState.Success
+                _authState.value = AuthState.Authenticated
+            } else {
+                _uiState.value = AuthUiState.Error(
+                    result.exceptionOrNull()?.message ?: "Login failed"
+                )
+            }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            userRepository.logout()
+            _authState.value = AuthState.Unauthenticated
         }
     }
 }
+
+
 
 sealed class AuthUiState {
     object Idle : AuthUiState()

@@ -12,8 +12,8 @@ interface UserDao {
     suspend fun insertUser(user: UserEntity)
 
     @Query("SELECT * FROM users LIMIT 1")
-    suspend fun getLoggedInUser(): UserEntity?
+    suspend fun getUser(): UserEntity?
 
     @Query("DELETE FROM users")
-    suspend fun logout()
+    suspend fun clear()
 }
