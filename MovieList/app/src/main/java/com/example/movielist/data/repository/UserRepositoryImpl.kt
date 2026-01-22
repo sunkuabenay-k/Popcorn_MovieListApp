@@ -7,12 +7,7 @@ class UserRepositoryImpl(
     private val userDao: UserDao
 ) : UserRepository {
 
-    override suspend fun login(
-        email: String,
-        password: String
-    ): Result<Unit> {
-
-        // Fake auth for now (replace with API later)
+    override suspend fun login(email: String, password: String): Result<Unit> {
         if (email.isBlank() || password.length < 6) {
             return Result.failure(Exception("Invalid credentials"))
         }
@@ -20,19 +15,19 @@ class UserRepositoryImpl(
         val user = UserEntity(
             id = email,
             email = email,
-            name = email.substringBefore("@"),
-            isLoggedIn = true
+            name = email.substringBefore("@")
         )
 
+        userDao.clear()
         userDao.insertUser(user)
+
         return Result.success(Unit)
     }
 
-    override suspend fun getLoggedInUser(): UserEntity? {
-        return userDao.getLoggedInUser()
-    }
+    override suspend fun getUser(): UserEntity? =
+        userDao.getUser()
 
     override suspend fun logout() {
-        userDao.logout()
+        userDao.clear()
     }
 }

@@ -32,7 +32,7 @@ public final class UserDao_Impl implements UserDao {
 
   private final EntityInsertionAdapter<UserEntity> __insertionAdapterOfUserEntity;
 
-  private final SharedSQLiteStatement __preparedStmtOfLogout;
+  private final SharedSQLiteStatement __preparedStmtOfClear;
 
   public UserDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
@@ -40,7 +40,7 @@ public final class UserDao_Impl implements UserDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `users` (`id`,`email`,`name`,`isLoggedIn`) VALUES (?,?,?,?)";
+        return "INSERT OR REPLACE INTO `users` (`id`,`email`,`name`) VALUES (?,?,?)";
       }
 
       @Override
@@ -49,11 +49,9 @@ public final class UserDao_Impl implements UserDao {
         statement.bindString(1, entity.getId());
         statement.bindString(2, entity.getEmail());
         statement.bindString(3, entity.getName());
-        final int _tmp = entity.isLoggedIn() ? 1 : 0;
-        statement.bindLong(4, _tmp);
       }
     };
-    this.__preparedStmtOfLogout = new SharedSQLiteStatement(__db) {
+    this.__preparedStmtOfClear = new SharedSQLiteStatement(__db) {
       @Override
       @NonNull
       public String createQuery() {
@@ -82,12 +80,12 @@ public final class UserDao_Impl implements UserDao {
   }
 
   @Override
-  public Object logout(final Continuation<? super Unit> $completion) {
+  public Object clear(final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
       public Unit call() throws Exception {
-        final SupportSQLiteStatement _stmt = __preparedStmtOfLogout.acquire();
+        final SupportSQLiteStatement _stmt = __preparedStmtOfClear.acquire();
         try {
           __db.beginTransaction();
           try {
@@ -98,14 +96,14 @@ public final class UserDao_Impl implements UserDao {
             __db.endTransaction();
           }
         } finally {
-          __preparedStmtOfLogout.release(_stmt);
+          __preparedStmtOfClear.release(_stmt);
         }
       }
     }, $completion);
   }
 
   @Override
-  public Object getLoggedInUser(final Continuation<? super UserEntity> $completion) {
+  public Object getUser(final Continuation<? super UserEntity> $completion) {
     final String _sql = "SELECT * FROM users LIMIT 1";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
@@ -118,7 +116,6 @@ public final class UserDao_Impl implements UserDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfEmail = CursorUtil.getColumnIndexOrThrow(_cursor, "email");
           final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
-          final int _cursorIndexOfIsLoggedIn = CursorUtil.getColumnIndexOrThrow(_cursor, "isLoggedIn");
           final UserEntity _result;
           if (_cursor.moveToFirst()) {
             final String _tmpId;
@@ -127,11 +124,7 @@ public final class UserDao_Impl implements UserDao {
             _tmpEmail = _cursor.getString(_cursorIndexOfEmail);
             final String _tmpName;
             _tmpName = _cursor.getString(_cursorIndexOfName);
-            final boolean _tmpIsLoggedIn;
-            final int _tmp;
-            _tmp = _cursor.getInt(_cursorIndexOfIsLoggedIn);
-            _tmpIsLoggedIn = _tmp != 0;
-            _result = new UserEntity(_tmpId,_tmpEmail,_tmpName,_tmpIsLoggedIn);
+            _result = new UserEntity(_tmpId,_tmpEmail,_tmpName);
           } else {
             _result = null;
           }

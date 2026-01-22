@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
@@ -19,14 +20,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel,
-    onLoginSuccess: () -> Unit
+    viewModel: AuthViewModel
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
 
     val state by viewModel.uiState.collectAsState()
 
@@ -36,7 +37,6 @@ fun LoginScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-
         Text("Login", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Spacer(Modifier.height(16.dp))
@@ -71,13 +71,11 @@ fun LoginScreen(
 
         when (state) {
             is AuthUiState.Loading -> CircularProgressIndicator()
-            is AuthUiState.Success -> LaunchedEffect(Unit) {
-                onLoginSuccess()
-            }
-            is AuthUiState.Error -> Text(
-                text = (state as AuthUiState.Error).message,
-                color = Color.Red
-            )
+            is AuthUiState.Error ->
+                Text(
+                    text = (state as AuthUiState.Error).message,
+                    color = Color.Red
+                )
             else -> Unit
         }
     }
