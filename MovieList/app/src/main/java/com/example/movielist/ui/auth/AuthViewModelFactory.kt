@@ -1,8 +1,9 @@
+// app/kotlin+java/com/example/movielist/ui/auth/AuthViewModelFactory.kt
 package com.example.movielist.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.movielist.data.repository.UserRepository
+import com.example.movielist.repository.UserRepository
 
 class AuthViewModelFactory(
     private val userRepository: UserRepository
@@ -16,4 +17,3 @@ class AuthViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-

@@ -1,3 +1,4 @@
+// app/kotlin+java/com/example/movielist/data/local/AppDatabase.kt
 package com.example.movielist.data.local
 
 import android.content.Context
@@ -7,11 +8,10 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [UserEntity::class],
-    version = 2,
+    version = 3, // Increment version
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun userDao(): UserDao
 
     companion object {
@@ -25,7 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "movie_db"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration() // Reset data on version change
                     .build()
                 INSTANCE = instance
                 instance

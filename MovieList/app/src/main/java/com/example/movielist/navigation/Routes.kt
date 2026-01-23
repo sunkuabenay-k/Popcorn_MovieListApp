@@ -1,7 +1,10 @@
+// app/kotlin+java/com/example/movielist/navigation/Routes.kt
 package com.example.movielist.navigation
 
 object Routes {
     const val LOGIN = "login"
+    const val REGISTER = "register"
+    const val SPLASH = "splash"
 
     // Bottom nav destinations
     const val HOME = "home"

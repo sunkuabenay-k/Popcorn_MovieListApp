@@ -1,33 +1,65 @@
-package com.example.movielist.data.repository
+// app/kotlin+java/com/example/movielist/repository/UserRepositoryImpl.kt
+package com.example.movielist.repository
 
 import com.example.movielist.data.local.UserDao
 import com.example.movielist.data.local.UserEntity
+import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl(
     private val userDao: UserDao
 ) : UserRepository {
 
     override suspend fun login(email: String, password: String): Result<Unit> {
-        if (email.isBlank() || password.length < 6) {
-            return Result.failure(Exception("Invalid credentials"))
+        return try {
+            val user = userDao.getUserByCredentials(email, password)
+            if (user != null) {
+                // Logout all users first
+                userDao.logoutAllUsers()
+                // Set current user as logged in
+                val updatedUser = user.copy(
+                    isLoggedIn = true,
+                    lastLogin = System.currentTimeMillis()
+                )
+                userDao.updateUser(updatedUser)
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Invalid credentials"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+    }
 
-        val user = UserEntity(
-            id = email,
-            email = email,
-            name = email.substringBefore("@")
-        )
+    override suspend fun register(name: String, email: String, password: String): Result<Unit> {
+        return try {
+            if (isEmailTaken(email)) {
+                return Result.failure(Exception("Email already registered"))
+            }
 
-        userDao.clear()
-        userDao.insertUser(user)
-
-        return Result.success(Unit)
+            val user = UserEntity(
+                id = email,
+                email = email,
+                name = name,
+                password = password // In production, hash this
+            )
+            userDao.insertUser(user)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun getUser(): UserEntity? =
-        userDao.getUser()
+        userDao.getLoggedInUser()
+
+    override suspend fun getCurrentUser(): UserEntity? =
+        userDao.getLoggedInUser()
 
     override suspend fun logout() {
-        userDao.clear()
+        userDao.logoutAllUsers()
+    }
+
+    override suspend fun isEmailTaken(email: String): Boolean {
+        return userDao.getUserByEmail(email) != null
     }
 }
