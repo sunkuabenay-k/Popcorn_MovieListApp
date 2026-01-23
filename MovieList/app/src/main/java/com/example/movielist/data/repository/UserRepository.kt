@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/repository/UserRepository.kt
 package com.example.movielist.repository
 
 import com.example.movielist.data.local.UserEntity

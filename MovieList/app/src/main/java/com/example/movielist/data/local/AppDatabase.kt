@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/data/local/AppDatabase.kt
 package com.example.movielist.data.local
 
 import android.content.Context

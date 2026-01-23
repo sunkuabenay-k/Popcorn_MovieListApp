@@ -1,9 +1,8 @@
-// app/kotlin+java/com/example/movielist/repository/UserRepositoryImpl.kt
 package com.example.movielist.repository
 
 import com.example.movielist.data.local.UserDao
 import com.example.movielist.data.local.UserEntity
-import kotlinx.coroutines.flow.Flow
+
 
 class UserRepositoryImpl(
     private val userDao: UserDao
@@ -13,9 +12,9 @@ class UserRepositoryImpl(
         return try {
             val user = userDao.getUserByCredentials(email, password)
             if (user != null) {
-                // Logout all users first
+
                 userDao.logoutAllUsers()
-                // Set current user as logged in
+
                 val updatedUser = user.copy(
                     isLoggedIn = true,
                     lastLogin = System.currentTimeMillis()
@@ -40,7 +39,7 @@ class UserRepositoryImpl(
                 id = email,
                 email = email,
                 name = name,
-                password = password // In production, hash this
+                password = password
             )
             userDao.insertUser(user)
             Result.success(Unit)

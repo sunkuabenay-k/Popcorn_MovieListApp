@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/ui/auth/SplashScreen.kt
 package com.example.movielist.ui.auth
 
 import androidx.compose.foundation.layout.Box
@@ -20,8 +19,6 @@ fun SplashScreen(
     val authState by viewModel.authState.collectAsState()
 
     LaunchedEffect(authState) {
-        // AuthState is already being handled in NavGraph
-        // This screen just shows loading while auth check happens
     }
 
     Box(

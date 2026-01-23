@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/data/local/UserEntity.kt
 package com.example.movielist.data.local
 
 import androidx.room.Entity
@@ -9,8 +8,8 @@ data class UserEntity(
     @PrimaryKey val id: String,
     val email: String,
     val name: String,
-    val password: String, // Add password field
-    val isLoggedIn: Boolean = false, // Add login state
+    val password: String,
+    val isLoggedIn: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val lastLogin: Long? = null
 )

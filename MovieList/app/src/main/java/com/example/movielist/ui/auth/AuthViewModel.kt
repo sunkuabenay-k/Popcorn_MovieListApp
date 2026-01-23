@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/ui/auth/AuthViewModel.kt
 package com.example.movielist.ui.auth
 
 import androidx.lifecycle.ViewModel

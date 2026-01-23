@@ -12,9 +12,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 
 @Composable
 fun AnimatedEyes(
@@ -23,7 +20,6 @@ fun AnimatedEyes(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "eyePulse")
 
-    // Pulsing alpha for the pupils
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.7f,
         targetValue = 1.0f,
@@ -46,14 +42,10 @@ fun AnimatedEyes(
 
 @Composable
 private fun EyeWithEyebrow(pointerOffset: Offset?, pupilAlpha: Float) {
-    // Calculate pupil movement
-    // We limit the movement to 12dp so the pupil stays inside the eye socket
     val pupilMovementLimit = 12f
 
     val targetOffset = remember(pointerOffset) {
         if (pointerOffset != null) {
-            // Simple logic to determine direction towards the pointer
-            // We use a small portion of the offset to simulate "looking"
             Offset(
                 x = (pointerOffset.x / 100f).coerceIn(-pupilMovementLimit, pupilMovementLimit),
                 y = (pointerOffset.y / 100f).coerceIn(-pupilMovementLimit, pupilMovementLimit)
@@ -70,7 +62,7 @@ private fun EyeWithEyebrow(pointerOffset: Offset?, pupilAlpha: Float) {
     )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Eyebrow
+
         Box(
             modifier = Modifier
                 .width(45.dp)
@@ -80,14 +72,13 @@ private fun EyeWithEyebrow(pointerOffset: Offset?, pupilAlpha: Float) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Eye Socket
+
         Box(
             modifier = Modifier
                 .size(55.dp)
                 .background(Color.White, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // Pupil
             Box(
                 modifier = Modifier
                     .offset(animatedPupilOffset.x.dp, animatedPupilOffset.y.dp)

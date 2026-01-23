@@ -39,7 +39,6 @@ fun LoginScreen(
 ) {
     val loginState by viewModel.loginState.collectAsState()
 
-    // This tracks where the user is touching or moving their finger
     var pointerOffset by remember { mutableStateOf<Offset?>(null) }
 
     val passwordFocusRequester = remember { FocusRequester() }
@@ -54,18 +53,15 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5)) // Light background to make white eyes pop
+            .background(Color(0xFFF5F5F5))
             .pointerInput(Unit) {
-                // Detects movements across the entire screen
+
                 awaitPointerEventScope {
                     while (true) {
                         val event = awaitPointerEvent()
                         val position = event.changes.first().position
 
-                        // Update offset if pointer is pressed, otherwise reset to center
                         pointerOffset = if (event.changes.any { it.pressed }) {
-                            // We center the coordinate system relative to the screen
-                            // to make the eyes look "towards" the touch
                             position - Offset(size.width / 2f, size.height / 2f)
                         } else {
                             null
@@ -79,7 +75,6 @@ fun LoginScreen(
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // App Logo
         Box(
             modifier = Modifier
                 .size(80.dp)
@@ -95,7 +90,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // THE FIXED COMPONENT: Passing the pointerOffset
         AnimatedEyes(
             modifier = Modifier.padding(vertical = 10.dp),
             pointerOffset = pointerOffset
@@ -124,7 +118,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Email Field
         OutlinedTextField(
             value = loginState.email,
             onValueChange = viewModel::onLoginEmailChange,
@@ -141,7 +134,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password Field
         OutlinedTextField(
             value = loginState.password,
             onValueChange = viewModel::onLoginPasswordChange,
@@ -170,7 +162,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Login Button
         Button(
             onClick = {
                 keyboardController?.hide()

@@ -17,7 +17,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize database and repository
         val database = AppDatabase.getDatabase(this)
         val userRepository = UserRepositoryImpl(database.userDao())
 

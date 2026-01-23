@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/ui/auth/RegisterScreen.kt
 package com.example.movielist.ui.auth
 
 import androidx.compose.foundation.layout.*

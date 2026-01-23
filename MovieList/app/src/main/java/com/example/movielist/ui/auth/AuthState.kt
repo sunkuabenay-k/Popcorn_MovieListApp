@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/ui/auth/AuthState.kt
 package com.example.movielist.ui.auth
 
 sealed class AuthState {

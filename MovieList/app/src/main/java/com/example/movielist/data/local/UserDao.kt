@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/data/local/UserDao.kt
 package com.example.movielist.data.local
 
 import androidx.room.*

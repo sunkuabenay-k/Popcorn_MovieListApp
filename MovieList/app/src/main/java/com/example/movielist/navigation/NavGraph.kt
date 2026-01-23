@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/navigation/NavGraph.kt
 package com.example.movielist.navigation
 
 import androidx.compose.runtime.Composable
