@@ -16,14 +16,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.movielist.ui.auth.AuthViewModel
+import com.example.movielist.ui.profile.ProfileViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    viewModel: AuthViewModel
+    viewModel: ProfileViewModel
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
 
@@ -93,6 +93,9 @@ fun ProfileScreen(
         Button(
             onClick = {
                 viewModel.logout()
+                navController.navigate("login") {
+                    popUpTo(0)
+                }
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -102,6 +105,7 @@ fun ProfileScreen(
         ) {
             Text("Logout")
         }
+
     }
 }
 
