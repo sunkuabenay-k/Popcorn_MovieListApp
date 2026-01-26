@@ -8,5 +8,8 @@ data class UserEntity(
     @PrimaryKey val id: String,
     val email: String,
     val name: String,
-    val isLoggedIn: Boolean
+    val password: String,
+    val isLoggedIn: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis(),
+    val lastLogin: Long? = null
 )
