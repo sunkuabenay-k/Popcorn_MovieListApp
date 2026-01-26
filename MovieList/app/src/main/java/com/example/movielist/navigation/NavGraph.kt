@@ -1,5 +1,6 @@
 package com.example.movielist.navigation
 
+import com.example.movielist.ui.profile.ProfileViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,11 +56,14 @@ fun AppNavGraph(
         }
 
         composable(Routes.PROFILE) {
+            val profileViewModel = ProfileViewModel(authViewModel)
+
             ProfileScreen(
                 navController = navController,
-                viewModel = authViewModel
+                viewModel = profileViewModel
             )
         }
+
     }
 
     // Handle navigation based on auth state
