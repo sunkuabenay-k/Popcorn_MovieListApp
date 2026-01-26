@@ -1,5 +1,4 @@
-package com.yourapp.movielist.ui.components
-
+package com.example.movielist.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.yourapp.movielist.data.local.MovieEntity
+import com.example.movielist.data.local.MovieEntity
 
 @Composable
 fun MovieCard(movie: MovieEntity, onClick: () -> Unit) {
@@ -32,11 +31,14 @@ fun MovieCard(movie: MovieEntity, onClick: () -> Unit) {
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = movie.title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                Text(text = movie.title, style =
+                    androidx.compose.material3.MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Rating: ${movie.voteAverage}/10", style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+                Text(text = "Rating: ${movie.voteAverage}/10", style =
+                    androidx.compose.material3.MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = movie.overview, maxLines = 4, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                Text(text = movie.overview, maxLines = 4, style =
+                    androidx.compose.material3.MaterialTheme.typography.bodySmall)
             }
         }
     }

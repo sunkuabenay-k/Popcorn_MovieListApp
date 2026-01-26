@@ -3,45 +3,47 @@ package com.example.movielist
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.example.movielist.data.local.AppDatabase
+import com.example.movielist.data.remote.MovieApi
+import com.example.movielist.data.repository.MovieRepository
+import com.example.movielist.data.repository.UserRepository
+import com.example.movielist.navigation.NavGraph
 import com.example.movielist.ui.theme.MovieListTheme
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
+
+    // Simple Manual Dependency Injection Container
+    class AppContainer(context: android.content.Context) {
+        private val database = Room.databaseBuilder(context, AppDatabase::class.java,
+            "movie_db").build()
+
+        private val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.themoviedb.org/3/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        private val movieApi = retrofit.create(MovieApi::class.java)
+
+        val userRepository = UserRepository(database.userDao())
+        val movieRepository = MovieRepository(movieApi, database.movieDao(),
+            database.favoriteDao())
+    }
+
+    private lateinit var appContainer: AppContainer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        appContainer = AppContainer(applicationContext)
+
         setContent {
             MovieListTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                val navController = rememberNavController()
+                NavGraph(navController = navController, appContainer = appContainer)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MovieListTheme {
-        Greeting("Android")
     }
 }
