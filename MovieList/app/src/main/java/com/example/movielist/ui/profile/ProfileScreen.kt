@@ -1,4 +1,3 @@
-// app/kotlin+java/com/example/movielist/ui/profile/ProfileScreen.kt
 package com.example.movielist.ui.profile
 
 import androidx.compose.foundation.background
@@ -16,14 +15,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.movielist.ui.profile.ProfileViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import com.example.movielist.ui.auth.AuthViewModel
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    viewModel: ProfileViewModel
+    viewModel: AuthViewModel
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
 
@@ -33,7 +30,8 @@ fun ProfileScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile Picture
+
+        // Profile Avatar
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -42,8 +40,8 @@ fun ProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                Icons.Default.Person,
-                contentDescription = "Profile",
+                imageVector = Icons.Default.Person,
+                contentDescription = "Profile Icon",
                 modifier = Modifier.size(60.dp),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -65,70 +63,22 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Divider(modifier = Modifier.fillMaxWidth())
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Profile Information
-            ProfileInfoItem(
-                label = "Member Since",
-                value = formatDate(user.createdAt)
-            )
-
-            user.lastLogin?.let { lastLogin ->
-                Spacer(modifier = Modifier.height(12.dp))
-                ProfileInfoItem(
-                    label = "Last Login",
-                    value = formatDate(lastLogin)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
+
+        Spacer(modifier = Modifier.weight(1f))
 
         // Logout Button
         Button(
             onClick = {
                 viewModel.logout()
-                navController.navigate("login") {
-                    popUpTo(0)
-                }
             },
+            modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
-            ),
-            modifier = Modifier.fillMaxWidth()
+            )
         ) {
             Text("Logout")
         }
-
     }
-}
-
-@Composable
-fun ProfileInfoItem(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-fun formatDate(timestamp: Long): String {
-    return SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-        .format(Date(timestamp))
 }
