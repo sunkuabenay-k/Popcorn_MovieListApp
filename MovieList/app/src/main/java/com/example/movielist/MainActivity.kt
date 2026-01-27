@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.movielist.data.local.AppDatabase
 import com.example.movielist.navigation.AppNavGraph
+import com.example.movielist.repository.MovieRepositoryImpl
 import com.example.movielist.repository.UserRepositoryImpl
 import com.example.movielist.ui.theme.MovieListTheme
 
@@ -19,6 +20,7 @@ class MainActivity : ComponentActivity() {
 
         val database = AppDatabase.getDatabase(this)
         val userRepository = UserRepositoryImpl(database.userDao())
+        val movieRepository = MovieRepositoryImpl(database.movieDao())
 
         setContent {
             MovieListTheme {
@@ -29,7 +31,8 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     AppNavGraph(
                         navController = navController,
-                        userRepository = userRepository
+                        userRepository = userRepository,
+                        movieRepository = movieRepository
                     )
                 }
             }
