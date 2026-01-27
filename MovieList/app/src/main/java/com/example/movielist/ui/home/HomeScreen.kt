@@ -2,6 +2,7 @@ package com.example.movielist.ui.home
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,8 +53,6 @@ fun HomeScreen(
             topRatedMovies = RetrofitInstance.api
                 .getTopRatedMovies(BuildConfig.TMDB_API_KEY)
                 .results
-
-            Log.d("TMDB", "Trending count = ${trendingMovies.size}")
         } catch (e: Exception) {
             Log.e("TMDB", "API ERROR", e)
         }
@@ -68,36 +67,43 @@ fun HomeScreen(
         }
     ) { paddingValues ->
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            Spacer(modifier = Modifier.height(12.dp))
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Good morning, Cinephile!",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+                Text(
+                    text = "Good morning, Cinephile!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-            Text(
-                text = "Time to discover new stories",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = "Time to discover new stories",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            item {
+                SectionTitle("What's Trending")
+                MovieRow(trendingMovies, movieRepository)
+            }
 
-            SectionTitle("What's Trending")
-            MovieRow(trendingMovies, movieRepository)
+            item {
+                SectionTitle("Critically Acclaimed")
+                MovieRow(topRatedMovies, movieRepository)
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionTitle("Critically Acclaimed")
-            MovieRow(topRatedMovies, movieRepository)
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
     }
 }
@@ -123,6 +129,7 @@ private fun MovieRow(
         }
     }
 }
+
 @Composable
 private fun MovieCard(
     movie: MovieDto,
@@ -142,7 +149,6 @@ private fun MovieCard(
     ) {
         Column {
 
-            // Poster (same for all)
             if (movie.poster_path != null) {
                 AsyncImage(
                     model = IMAGE_BASE_URL + movie.poster_path,
@@ -154,15 +160,13 @@ private fun MovieCard(
                 )
             }
 
-            // 🔒 Fixed-height info section
             Column(
                 modifier = Modifier
-                    .height(68.dp) // ⭐ KEY LINE (locks size)
+                    .height(68.dp)
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
 
-                // Title (always reserves 2 lines)
                 Text(
                     text = movie.title,
                     fontSize = 13.sp,
@@ -171,7 +175,6 @@ private fun MovieCard(
                     lineHeight = 16.sp
                 )
 
-                // Rating + Heart row (always visible)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
