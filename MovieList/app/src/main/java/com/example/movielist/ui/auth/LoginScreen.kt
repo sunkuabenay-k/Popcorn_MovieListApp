@@ -2,6 +2,8 @@ package com.example.movielist.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,20 +20,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.movielist.R
 import com.example.movielist.ui.components.AnimatedEyes
+import com.example.movielist.ui.util.Responsive
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -43,130 +46,224 @@ fun LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
 
+    // Touch tracking for animated eyes
+    var pointerOffset by remember { mutableStateOf<Offset?>(null) }
+
+    // Credential Manager helper
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val credentialHelper = remember { CredentialManagerHelper(context) }
+
+    // Save credentials on successful login
     LaunchedEffect(loginState.isSuccess) {
         if (loginState.isSuccess) {
-            viewModel.resetLoginState()
-            // Navigate to Home here
+            scope.launch {
+                credentialHelper.saveLoginCredentials(
+                    email = loginState.email,
+                    password = loginState.password
+                )
+            }
+            // Navigate to home/main screen if needed
+            // navController.navigate("home") { popUpTo(0) }
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = AuthUiUtils.horizontalPadding()),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { pointerOffset = it },
+                    onDragEnd = { pointerOffset = null },
+                    onDragCancel = { pointerOffset = null },
+                    onDrag = { change, _ -> pointerOffset = change.position }
+                )
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        pointerOffset = it
+                        tryAwaitRelease()
+                        pointerOffset = null
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
     ) {
-        Spacer(modifier = Modifier.height(AuthUiUtils.responsiveDp(0.08f)))
-
-        // Logo Header
-        Box(
+        Column(
             modifier = Modifier
-                .size(100.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-            contentAlignment = Alignment.Center
+                .widthIn(max = 420.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Responsive.horizontalPadding())
+                .background(MaterialTheme.colorScheme.background),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.movie_list_icon3),
-                contentDescription = "App Logo",
-                modifier = Modifier.fillMaxSize(0.7f)
+            Spacer(modifier = Modifier.height(Responsive.dp(0.06f)))
+
+            // App Logo
+            Box(
+                modifier = Modifier
+                    .size(Responsive.dp(0.12f))
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.movie_list_icon3),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(0.7f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(Responsive.dp(0.03f)))
+
+            // Animated eyes
+            AnimatedEyes(
+                modifier = Modifier.fillMaxWidth(0.5f),
+                pointerOffset = pointerOffset
             )
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Responsive.dp(0.02f)))
 
-        AnimatedEyes(
-            modifier = Modifier.size(120.dp),
-            pointerOffset = null
-        )
+            Text(
+                text = "Your Cinema\nJourney Starts Here",
+                fontSize = Responsive.sp(0.035f),
+                lineHeight = Responsive.sp(0.045f),
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Discover, track, and share your favorite films.",
+                fontSize = Responsive.sp(0.02f),
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
 
-        Text(
-            text = "Your Cinema\nJourney Starts Here",
-            fontSize = AuthUiUtils.responsiveSp(0.032f),
-            fontWeight = FontWeight.ExtraBold,
-            lineHeight = AuthUiUtils.responsiveSp(0.04f),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+            Spacer(modifier = Modifier.height(Responsive.dp(0.05f)))
 
-        Text(
-            text = "Discover, track, and share your favorite films.",
-            fontSize = AuthUiUtils.responsiveSp(0.018f),
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
-        )
-
-        // Input Fields
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            // Email input
             OutlinedTextField(
                 value = loginState.email,
                 onValueChange = viewModel::onLoginEmailChange,
                 label = { Text("Email or Username") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { passwordFocusRequester.requestFocus() })
+                shape = RoundedCornerShape(12.dp),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions {
+                    passwordFocusRequester.requestFocus()
+                }
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password input
             OutlinedTextField(
                 value = loginState.password,
                 onValueChange = viewModel::onLoginPasswordChange,
                 label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth().focusRequester(passwordFocusRequester),
-                shape = RoundedCornerShape(16.dp),
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(passwordFocusRequester),
+                shape = RoundedCornerShape(12.dp),
+                visualTransformation = if (showPassword)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
-                            imageVector = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = null
+                            imageVector = if (showPassword)
+                                Icons.Filled.Visibility
+                            else
+                                Icons.Filled.VisibilityOff,
+                            contentDescription = if (showPassword) "Hide password" else "Show password"
                         )
                     }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions {
+                    keyboardController?.hide()
+                }
             )
-        }
 
-        if (loginState.error != null) {
-            Text(
-                text = loginState.error!!,
-                color = MaterialTheme.colorScheme.error,
-                fontSize = AuthUiUtils.responsiveSp(0.015f),
-                modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
-            )
-        }
+            // Error box
+            loginState.error?.let { errorMsg ->
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                keyboardController?.hide()
-                viewModel.login(loginState.email, loginState.password)
-            },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            enabled = !loginState.isLoading && loginState.email.isNotBlank() && loginState.password.isNotBlank()
-        ) {
-            if (loginState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
-            } else {
-                Text("Login", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = errorMsg,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = Responsive.sp(0.018f),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-        }
 
-        TextButton(
-            onClick = {
-                viewModel.resetLoginState()
-                navController.navigate("register")
-            },
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Don't have an account? Sign Up", fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Login button
+            Button(
+                onClick = {
+                    keyboardController?.hide()
+                    viewModel.login(
+                        loginState.email,
+                        loginState.password
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                enabled = !loginState.isLoading
+            ) {
+                if (loginState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Login",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = Responsive.sp(0.022f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Navigate to register
+            TextButton(
+                onClick = {
+                    viewModel.resetLoginState()
+                    navController.navigate("register")
+                }
+            ) {
+                Text("Don't have an account? Sign Up")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

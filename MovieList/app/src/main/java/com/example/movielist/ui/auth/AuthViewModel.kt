@@ -1,5 +1,6 @@
 package com.example.movielist.ui.auth
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movielist.data.local.UserEntity
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+// --- Login State ---
 data class LoginState(
     val email: String = "",
     val password: String = "",
@@ -17,6 +19,7 @@ data class LoginState(
     val isSuccess: Boolean = false
 )
 
+// --- Register State with validation flags ---
 data class RegisterState(
     val name: String = "",
     val email: String = "",
@@ -24,7 +27,9 @@ data class RegisterState(
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val passwordError: Boolean = false,
+    val confirmPasswordError: Boolean = false
 )
 
 class AuthViewModel(
@@ -50,80 +55,84 @@ class AuthViewModel(
         refreshAuth()
     }
 
+    // --- Save credentials locally ---
+    fun saveCredentials(context: Context, email: String, pass: String) {
+        viewModelScope.launch {
+            val helper = CredentialManagerHelper(context)
+            helper.saveLoginCredentials(email, pass)
+        }
+    }
+
+    // --- Refresh current user ---
     private fun refreshAuth() {
         viewModelScope.launch {
             val user = userRepository.getUser()
             _currentUser.value = user
-            _authState.value = if (user != null) {
-                AuthState.Authenticated
-            } else {
-                AuthState.Unauthenticated
-            }
+            _authState.value = if (user != null) AuthState.Authenticated
+            else AuthState.Unauthenticated
         }
     }
 
+    // --- LOGIN ---
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            _loginState.value = _loginState.value.copy(
-                isLoading = true,
-                error = null
-            )
+            _loginState.value = _loginState.value.copy(isLoading = true, error = null)
             _uiState.value = AuthUiState.Loading
 
             val result = userRepository.login(email, password)
-
             if (result.isSuccess) {
-                _loginState.value = _loginState.value.copy(
-                    isLoading = false,
-                    isSuccess = true
-                )
+                _loginState.value = _loginState.value.copy(isLoading = false, isSuccess = true)
                 _uiState.value = AuthUiState.Success
                 refreshAuth()
             } else {
-                val errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
-                _loginState.value = _loginState.value.copy(
-                    isLoading = false,
-                    error = errorMessage
-                )
-                _uiState.value = AuthUiState.Error(errorMessage)
+                val errorMsg = result.exceptionOrNull()?.message ?: "Login failed"
+                _loginState.value = _loginState.value.copy(isLoading = false, error = errorMsg)
+                _uiState.value = AuthUiState.Error(errorMsg)
             }
         }
     }
 
-    fun register(name: String, email: String, password: String, confirmPassword: String) {
-        if (password != confirmPassword) {
+    // --- REGISTER with password validation ---
+    fun register(name: String, email: String, pass: String, confirm: String) {
+        val passwordPattern = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#\$%^&+=!])(?=\\S+\$).{8,}$".toRegex()
+        val isPasswordValid = passwordPattern.matches(pass)
+        val passwordsMatch = pass == confirm
+
+        if (!isPasswordValid || !passwordsMatch) {
             _registerState.value = _registerState.value.copy(
-                error = "Passwords don't match"
+                passwordError = !isPasswordValid,
+                confirmPasswordError = !passwordsMatch,
+                error = when {
+                    !isPasswordValid -> "Password must be 8+ chars, with 1 uppercase, 1 number, and 1 special character."
+                    !passwordsMatch -> "Passwords do not match."
+                    else -> null
+                }
             )
             return
         }
 
+        _registerState.value = _registerState.value.copy(
+            passwordError = false,
+            confirmPasswordError = false,
+            error = null,
+            isLoading = true
+        )
+        _uiState.value = AuthUiState.Loading
+
         viewModelScope.launch {
-            _registerState.value = _registerState.value.copy(
-                isLoading = true,
-                error = null
-            )
-            _uiState.value = AuthUiState.Loading
-
-            val result = userRepository.register(name, email, password)
-
+            val result = userRepository.register(name, email, pass)
             if (result.isSuccess) {
-                _registerState.value = _registerState.value.copy(
-                    isLoading = false,
-                    isSuccess = true
-                )
+                _registerState.value = _registerState.value.copy(isLoading = false, isSuccess = true)
                 _uiState.value = AuthUiState.Success
             } else {
-                val errorMessage = result.exceptionOrNull()?.message ?: "Registration failed"
-                _registerState.value = _registerState.value.copy(
-                    isLoading = false,
-                    error = errorMessage
-                )
-                _uiState.value = AuthUiState.Error(errorMessage)
+                val errorMsg = result.exceptionOrNull()?.message ?: "Registration failed"
+                _registerState.value = _registerState.value.copy(isLoading = false, error = errorMsg)
+                _uiState.value = AuthUiState.Error(errorMsg)
             }
         }
     }
 
+    // --- LOGOUT ---
     fun logout() {
         viewModelScope.launch {
             userRepository.logout()
@@ -134,35 +143,35 @@ class AuthViewModel(
         }
     }
 
-    fun onLoginEmailChange(email: String) {
-        _loginState.value = _loginState.value.copy(email = email)
+    // --- DELETE ACCOUNT ---
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Loading
+            val result = userRepository.deleteAccount()
+            if (result.isSuccess) {
+                _currentUser.value = null
+                _authState.value = AuthState.Unauthenticated
+                _uiState.value = AuthUiState.Success
+                resetLoginState()
+                resetRegisterState()
+            } else {
+                val errorMsg = result.exceptionOrNull()?.message ?: "Delete failed"
+                _uiState.value = AuthUiState.Error(errorMsg)
+            }
+        }
     }
 
-    fun onLoginPasswordChange(password: String) {
-        _loginState.value = _loginState.value.copy(password = password)
-    }
+    // --- LOGIN STATE UPDATES ---
+    fun onLoginEmailChange(email: String) { _loginState.value = _loginState.value.copy(email = email) }
+    fun onLoginPasswordChange(password: String) { _loginState.value = _loginState.value.copy(password = password) }
 
-    fun onRegisterNameChange(name: String) {
-        _registerState.value = _registerState.value.copy(name = name)
-    }
+    // --- REGISTER STATE UPDATES ---
+    fun onRegisterNameChange(name: String) { _registerState.value = _registerState.value.copy(name = name) }
+    fun onRegisterEmailChange(email: String) { _registerState.value = _registerState.value.copy(email = email) }
+    fun onRegisterPasswordChange(password: String) { _registerState.value = _registerState.value.copy(password = password) }
+    fun onRegisterConfirmPasswordChange(confirmPassword: String) { _registerState.value = _registerState.value.copy(confirmPassword = confirmPassword) }
 
-    fun onRegisterEmailChange(email: String) {
-        _registerState.value = _registerState.value.copy(email = email)
-    }
-
-    fun onRegisterPasswordChange(password: String) {
-        _registerState.value = _registerState.value.copy(password = password)
-    }
-
-    fun onRegisterConfirmPasswordChange(confirmPassword: String) {
-        _registerState.value = _registerState.value.copy(confirmPassword = confirmPassword)
-    }
-
-    fun resetLoginState() {
-        _loginState.value = LoginState()
-    }
-
-    fun resetRegisterState() {
-        _registerState.value = RegisterState()
-    }
+    // --- RESET STATES ---
+    fun resetLoginState() { _loginState.value = LoginState() }
+    fun resetRegisterState() { _registerState.value = RegisterState() }
 }
