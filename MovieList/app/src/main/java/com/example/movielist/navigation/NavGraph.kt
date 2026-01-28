@@ -1,36 +1,41 @@
 package com.example.movielist.navigation
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.movielist.ui.auth.AuthState
-import com.example.movielist.ui.auth.AuthViewModel
-import com.example.movielist.ui.auth.AuthViewModelFactory
-import com.example.movielist.ui.auth.LoginScreen
-import com.example.movielist.ui.auth.RegisterScreen
-import com.example.movielist.ui.auth.SplashScreen
+import androidx.navigation.navArgument
+import com.example.movielist.repository.MovieRepositoryImpl
+import com.example.movielist.repository.UserRepository
+import com.example.movielist.ui.auth.*
+import com.example.movielist.ui.favourites.FavoritesScreen
 import com.example.movielist.ui.home.HomeScreen
 import com.example.movielist.ui.profile.ProfileScreen
-import com.example.movielist.repository.UserRepository
+import com.example.movielist.ui.details.MovieDetailsScreen
+
 
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    userRepository: UserRepository
+    userRepository: UserRepository,
+    movieRepository: MovieRepositoryImpl
 ) {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(userRepository)
     )
+
     val authState by authViewModel.authState.collectAsState()
 
     NavHost(
         navController = navController,
         startDestination = Routes.SPLASH
     ) {
+
         composable(Routes.SPLASH) {
             SplashScreen(navController, authViewModel)
         }
@@ -50,7 +55,16 @@ fun AppNavGraph(
         }
 
         composable(Routes.HOME) {
-            HomeScreen(navController)
+            HomeScreen(
+                navController = navController,
+                movieRepository = movieRepository
+            )
+        }
+        composable(Routes.FAVORITES) {
+            FavoritesScreen(
+                navController = navController,
+                movieRepository = movieRepository
+            )
         }
 
         composable(Routes.PROFILE) {
@@ -59,13 +73,27 @@ fun AppNavGraph(
                 viewModel = authViewModel
             )
         }
+        composable(
+            route = Routes.DETAILS,
+            arguments = listOf(
+                navArgument("movieId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getInt("movieId") ?: return@composable
+
+            MovieDetailsScreen(
+                navController = navController,
+                movieId = movieId,
+                movieRepository = movieRepository
+            )
+        }
+
 
     }
-    // Handle navigation based on auth state
+
     LaunchedEffect(authState) {
         when (authState) {
             AuthState.Authenticated -> {
-                // Navigate to home if not already there
                 if (navController.currentDestination?.route != Routes.HOME) {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
@@ -73,16 +101,13 @@ fun AppNavGraph(
                 }
             }
             AuthState.Unauthenticated -> {
-                // Navigate to login if not already there
                 if (navController.currentDestination?.route != Routes.LOGIN) {
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
                 }
             }
-            AuthState.Loading -> {
-                // Stay on splash
-            }
+            AuthState.Loading -> Unit
         }
     }
 }

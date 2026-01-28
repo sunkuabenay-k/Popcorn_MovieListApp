@@ -6,12 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [UserEntity::class],
-    version = 3, // Increment version
+    entities = [
+        UserEntity::class,
+        MovieEntity::class
+    ],
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun movieDao(): MovieDao
 
     companion object {
         @Volatile
@@ -24,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "movie_db"
                 )
-                    .fallbackToDestructiveMigration() // Reset data on version change
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

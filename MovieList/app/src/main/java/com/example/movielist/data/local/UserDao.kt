@@ -1,6 +1,7 @@
 package com.example.movielist.data.local
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
@@ -24,4 +25,8 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
     suspend fun getUserByEmail(email: String): UserEntity?
+
+    @Query("SELECT * FROM users WHERE isLoggedIn = 1 LIMIT 1")
+    fun observeLoggedInUser(): Flow<UserEntity>
+
 }
