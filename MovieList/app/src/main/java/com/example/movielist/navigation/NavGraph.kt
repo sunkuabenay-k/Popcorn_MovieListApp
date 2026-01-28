@@ -103,7 +103,6 @@ fun AppNavGraph(
         }
     }
 
-    // ✅ AUTH REDIRECTION (MUST BE OUTSIDE NavHost)
     LaunchedEffect(authState) {
         when (authState) {
             AuthState.Authenticated -> {
