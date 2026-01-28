@@ -66,4 +66,21 @@ class UserRepositoryImpl(
     override fun currentUserFlow(): Flow<UserEntity> {
         return userDao.observeLoggedInUser()
     }
+
+    override suspend fun deleteAccount(): Result<Unit> {
+        return try {
+            val currentUser = userDao.getLoggedInUser()
+            if (currentUser != null) {
+                // 1. Delete the user from DB
+                userDao.deleteUser(currentUser)
+                // 2. Ensure any session flags are cleared (logout)
+                userDao.logoutAllUsers()
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("No user logged in"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

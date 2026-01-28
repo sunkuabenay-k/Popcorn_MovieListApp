@@ -29,4 +29,6 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE isLoggedIn = 1 LIMIT 1")
     fun observeLoggedInUser(): Flow<UserEntity>
 
+    @Delete
+    suspend fun deleteUser(user: UserEntity)
 }

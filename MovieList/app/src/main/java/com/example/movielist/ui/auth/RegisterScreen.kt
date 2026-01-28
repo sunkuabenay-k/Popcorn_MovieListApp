@@ -14,11 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.movielist.ui.util.Responsive
 
@@ -34,9 +34,15 @@ fun RegisterScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     val keyboard = LocalSoftwareKeyboardController.current
+    val context = LocalContext.current
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
+            viewModel.saveCredentials(
+                context = context,
+                email = state.email,
+                pass = state.password
+            )
             showSuccessDialog = true
         }
     }
@@ -51,7 +57,9 @@ fun RegisterScreen(
                 }
             },
             title = { Text("Registration Successful!") },
-            text = { Text("Your account has been created successfully. Please login to continue.") },
+            text = {
+                Text("Your account has been created successfully. Please login to continue.")
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -112,11 +120,13 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            //Password Field with error highlighting
             OutlinedTextField(
                 value = state.password,
                 onValueChange = viewModel::onRegisterPasswordChange,
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
+                isError = state.passwordError,
                 visualTransformation = if (showPassword)
                     VisualTransformation.None
                 else
@@ -128,7 +138,11 @@ fun RegisterScreen(
                                 Icons.Filled.Visibility
                             else
                                 Icons.Filled.VisibilityOff,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = if (state.passwordError)
+                                MaterialTheme.colorScheme.error
+                            else
+                                LocalContentColor.current
                         )
                     }
                 },
@@ -137,11 +151,13 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            //Confirm Password Field with error highlighting
             OutlinedTextField(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onRegisterConfirmPasswordChange,
                 label = { Text("Confirm Password") },
                 modifier = Modifier.fillMaxWidth(),
+                isError = state.confirmPasswordError,
                 visualTransformation = if (showConfirm)
                     VisualTransformation.None
                 else
@@ -153,32 +169,31 @@ fun RegisterScreen(
                                 Icons.Filled.Visibility
                             else
                                 Icons.Filled.VisibilityOff,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = if (state.confirmPasswordError)
+                                MaterialTheme.colorScheme.error
+                            else
+                                LocalContentColor.current
                         )
                     }
                 },
                 shape = RoundedCornerShape(12.dp)
             )
 
-            if (state.error != null) {
+            state.error?.let {
                 Text(
-                    text = state.error!!,
+                    text = it,
                     color = MaterialTheme.colorScheme.error,
                     fontSize = Responsive.sp(0.018f),
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
-
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
                     keyboard?.hide()
-
-                    if (state.password != state.confirmPassword) {
-                        return@Button
-                    }
                     viewModel.register(
                         state.name,
                         state.email,
@@ -190,13 +205,11 @@ fun RegisterScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-
                 enabled = !state.isLoading &&
                         state.name.isNotBlank() &&
                         state.email.isNotBlank() &&
                         state.password.isNotBlank()
             ) {
-
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
@@ -233,4 +246,3 @@ fun RegisterScreen(
         }
     }
 }
-

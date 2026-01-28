@@ -104,4 +104,13 @@ dependencies {
 
     // Coil (Image loading for Compose)
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Credential Manager
+    implementation("androidx.credentials:credentials:1.3.0")
+
+    // Optional: required for support on devices below Android 14
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+
+    // GoogleID (if you plan to add Sign in with Google later, useful to have now)
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 }

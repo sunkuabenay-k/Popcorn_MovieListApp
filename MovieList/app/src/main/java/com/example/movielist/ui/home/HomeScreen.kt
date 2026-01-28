@@ -84,7 +84,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Good morning, Cinephile!",
+                    text = "Good morning, Movie List!",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
