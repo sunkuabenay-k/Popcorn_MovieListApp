@@ -1,0 +1,234 @@
+package com.example.movielist.ui.home
+
+import android.util.Log
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import com.example.movielist.BuildConfig
+import com.example.movielist.data.local.MovieEntity
+import com.example.movielist.data.remote.MovieDto
+import com.example.movielist.data.remote.RetrofitInstance
+import com.example.movielist.navigation.BottomNavItem
+import com.example.movielist.repository.MovieRepositoryImpl
+import com.example.movielist.ui.components.BottomNavigationBar
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+
+// Changed to http to avoid SSL issues on emulator
+private const val IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500"
+
+@Composable
+fun HomeScreen(
+    navController: NavHostController,
+    movieRepository: MovieRepositoryImpl
+) {
+    val bottomItems = listOf(
+        BottomNavItem.Home,
+        BottomNavItem.Favorites,
+        BottomNavItem.Profile
+    )
+
+    var trendingMovies by remember { mutableStateOf<List<MovieDto>>(emptyList()) }
+    var topRatedMovies by remember { mutableStateOf<List<MovieDto>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        try {
+            trendingMovies = RetrofitInstance.api
+                .getTrendingMovies(BuildConfig.TMDB_API_KEY)
+                .results
+
+            topRatedMovies = RetrofitInstance.api
+                .getTopRatedMovies(BuildConfig.TMDB_API_KEY)
+                .results
+
+            Log.d("TMDB", "Trending count = ${trendingMovies.size}")
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.e("TMDB", "API ERROR", e)
+        }
+    }
+
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                navController = navController,
+                items = bottomItems
+            )
+        }
+    ) { paddingValues ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Good morning, Cinephile!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Time to discover new stories",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            SectionTitle("What's Trending")
+            MovieRow(trendingMovies, movieRepository)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SectionTitle("Critically Acclaimed")
+            MovieRow(topRatedMovies, movieRepository)
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(bottom = 12.dp)
+    )
+}
+
+@Composable
+private fun MovieRow(
+    movies: List<MovieDto>,
+    movieRepository: MovieRepositoryImpl
+) {
+    LazyRow {
+        items(movies) { movie ->
+            MovieCard(movie, movieRepository)
+        }
+    }
+}
+@Composable
+private fun MovieCard(
+    movie: MovieDto,
+    movieRepository: MovieRepositoryImpl
+) {
+    val scope = rememberCoroutineScope()
+    val isFavorite by movieRepository
+        .isFavorite(movie.id)
+        .collectAsState(initial = false)
+
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .padding(end = 12.dp),
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+
+            // Poster
+            if (movie.poster_path != null) {
+                AsyncImage(
+                    model = IMAGE_BASE_URL + movie.poster_path,
+                    contentDescription = movie.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(2f / 3f),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // 🔒 Fixed-height info section
+            Column(
+                modifier = Modifier
+                    .height(68.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                // Title (always reserves 2 lines)
+                Text(
+                    text = movie.title,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    lineHeight = 16.sp
+                )
+
+                // Rating + Heart row (always visible)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = String.format("%.1f", movie.vote_average),
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                if (isFavorite) {
+                                    movieRepository.removeFromFavorites(movie.toEntity())
+                                } else {
+                                    movieRepository.addToFavorites(movie.toEntity())
+                                }
+                            }
+                        },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite)
+                                Icons.Filled.Favorite
+                            else
+                                Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isFavorite)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun MovieDto.toEntity(): MovieEntity {
+    return MovieEntity(
+        id = id,
+        title = title,
+        posterPath = poster_path,
+        rating = vote_average
+    )
+}
