@@ -1,6 +1,7 @@
 package com.example.movielist.data.remote
 
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MovieApi {
@@ -14,4 +15,11 @@ interface MovieApi {
     suspend fun getTopRatedMovies(
         @Query("api_key") apiKey: String
     ): MovieResponse
+
+    @GET("movie/{movie_id}")
+    suspend fun getMovieDetails(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ): MovieDetailsDto
+
 }
