@@ -2,6 +2,7 @@ package com.example.movielist.repository
 
 import com.example.movielist.data.local.UserDao
 import com.example.movielist.data.local.UserEntity
+import kotlinx.coroutines.flow.Flow
 
 
 class UserRepositoryImpl(
@@ -60,5 +61,9 @@ class UserRepositoryImpl(
 
     override suspend fun isEmailTaken(email: String): Boolean {
         return userDao.getUserByEmail(email) != null
+    }
+
+    override fun currentUserFlow(): Flow<UserEntity> {
+        return userDao.observeLoggedInUser()
     }
 }

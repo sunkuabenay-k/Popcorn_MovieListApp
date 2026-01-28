@@ -2,6 +2,7 @@
 
 package com.example.movielist.ui.favourites
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -25,6 +26,7 @@ import com.example.movielist.ui.components.BottomNavigationBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavHostController
+import com.example.movielist.navigation.Routes
 
 
 private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
@@ -90,7 +92,7 @@ fun FavoritesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(favorites) { movie ->
-                    FavoriteMovieCard(movie)
+                    FavoriteMovieCard(movie,navController)
                 }
             }
         }
@@ -98,9 +100,14 @@ fun FavoritesScreen(
 }
 
 @Composable
-private fun FavoriteMovieCard(movie: MovieEntity) {
+private fun FavoriteMovieCard(movie: MovieEntity,navController: NavHostController,) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .clickable {
+                navController.navigate(
+                    Routes.details(movie.id)
+                )
+            },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

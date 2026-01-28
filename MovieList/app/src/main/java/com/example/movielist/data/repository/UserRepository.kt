@@ -1,6 +1,7 @@
 package com.example.movielist.repository
 
 import com.example.movielist.data.local.UserEntity
+import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
     suspend fun login(email: String, password: String): Result<Unit>
@@ -9,4 +10,5 @@ interface UserRepository {
     suspend fun getCurrentUser(): UserEntity?
     suspend fun logout()
     suspend fun isEmailTaken(email: String): Boolean
+    fun currentUserFlow(): Flow<UserEntity>
 }

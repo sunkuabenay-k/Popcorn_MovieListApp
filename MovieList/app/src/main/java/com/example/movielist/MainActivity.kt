@@ -20,7 +20,10 @@ class MainActivity : ComponentActivity() {
 
         val database = AppDatabase.getDatabase(this)
         val userRepository = UserRepositoryImpl(database.userDao())
-        val movieRepository = MovieRepositoryImpl(database.movieDao())
+        val movieRepository = MovieRepositoryImpl(
+            database.movieDao(),
+            userRepository = userRepository
+        )
 
         setContent {
             MovieListTheme {

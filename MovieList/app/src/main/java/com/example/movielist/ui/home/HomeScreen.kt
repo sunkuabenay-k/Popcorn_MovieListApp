@@ -1,7 +1,9 @@
 package com.example.movielist.ui.home
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +25,7 @@ import com.example.movielist.data.local.MovieEntity
 import com.example.movielist.data.remote.MovieDto
 import com.example.movielist.data.remote.RetrofitInstance
 import com.example.movielist.navigation.BottomNavItem
+import com.example.movielist.navigation.Routes
 import com.example.movielist.repository.MovieRepositoryImpl
 import com.example.movielist.ui.components.BottomNavigationBar
 import kotlinx.coroutines.launch
@@ -39,11 +42,14 @@ fun HomeScreen(
         BottomNavItem.Favorites,
         BottomNavItem.Profile
     )
+    var userId by remember { mutableStateOf<String?>(null) }
+
 
     var trendingMovies by remember { mutableStateOf<List<MovieDto>>(emptyList()) }
     var topRatedMovies by remember { mutableStateOf<List<MovieDto>>(emptyList()) }
 
     LaunchedEffect(Unit) {
+        userId = movieRepository.currentUserId()
         try {
             trendingMovies = RetrofitInstance.api
                 .getTrendingMovies(BuildConfig.TMDB_API_KEY)
@@ -52,8 +58,6 @@ fun HomeScreen(
             topRatedMovies = RetrofitInstance.api
                 .getTopRatedMovies(BuildConfig.TMDB_API_KEY)
                 .results
-
-            Log.d("TMDB", "Trending count = ${trendingMovies.size}")
         } catch (e: Exception) {
             Log.e("TMDB", "API ERROR", e)
         }
@@ -68,36 +72,43 @@ fun HomeScreen(
         }
     ) { paddingValues ->
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            Spacer(modifier = Modifier.height(12.dp))
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Good morning, Cinephile!",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+                Text(
+                    text = "Good morning, Cinephile!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-            Text(
-                text = "Time to discover new stories",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = "Time to discover new stories",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            item {
+                SectionTitle("What's Trending")
+                MovieRow(trendingMovies, navController, movieRepository,userId)
+            }
 
-            SectionTitle("What's Trending")
-            MovieRow(trendingMovies, movieRepository)
+            item {
+                SectionTitle("Critically Acclaimed")
+                MovieRow(topRatedMovies, navController, movieRepository,userId)
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionTitle("Critically Acclaimed")
-            MovieRow(topRatedMovies, movieRepository)
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
     }
 }
@@ -115,18 +126,23 @@ private fun SectionTitle(title: String) {
 @Composable
 private fun MovieRow(
     movies: List<MovieDto>,
-    movieRepository: MovieRepositoryImpl
+    navController: NavHostController,
+    movieRepository: MovieRepositoryImpl,
+    userId: String?
 ) {
     LazyRow {
         items(movies) { movie ->
-            MovieCard(movie, movieRepository)
+            MovieCard(movie,navController, movieRepository,userId)
         }
     }
 }
+
 @Composable
 private fun MovieCard(
     movie: MovieDto,
-    movieRepository: MovieRepositoryImpl
+    navController: NavHostController,
+    movieRepository: MovieRepositoryImpl,
+    userId: String?
 ) {
     val scope = rememberCoroutineScope()
     val isFavorite by movieRepository
@@ -136,13 +152,17 @@ private fun MovieCard(
     Card(
         modifier = Modifier
             .width(140.dp)
-            .padding(end = 12.dp),
+            .padding(end = 12.dp)
+            .clickable {
+                navController.navigate(
+                    Routes.details(movie.id)
+                )
+            },
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
 
-            // Poster (same for all)
             if (movie.poster_path != null) {
                 AsyncImage(
                     model = IMAGE_BASE_URL + movie.poster_path,
@@ -154,15 +174,13 @@ private fun MovieCard(
                 )
             }
 
-            // 🔒 Fixed-height info section
             Column(
                 modifier = Modifier
-                    .height(68.dp) // ⭐ KEY LINE (locks size)
+                    .height(68.dp)
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
 
-                // Title (always reserves 2 lines)
                 Text(
                     text = movie.title,
                     fontSize = 13.sp,
@@ -171,7 +189,6 @@ private fun MovieCard(
                     lineHeight = 16.sp
                 )
 
-                // Rating + Heart row (always visible)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -193,11 +210,16 @@ private fun MovieCard(
 
                     IconButton(
                         onClick = {
+                            val uid = userId ?: run {
+                                Log.d("FAV_DEBUG", "userId is NULL, ignoring click")
+                                return@IconButton
+                            }
+                            Log.d("FAV_DEBUG", "Clicked favorite for movie=${movie.id}, user=$uid")
                             scope.launch {
                                 if (isFavorite) {
-                                    movieRepository.removeFromFavorites(movie.toEntity())
+                                    movieRepository.removeFromFavorites(movie.toEntity(uid))
                                 } else {
-                                    movieRepository.addToFavorites(movie.toEntity())
+                                    movieRepository.addToFavorites(movie.toEntity(uid))
                                 }
                             }
                         },
@@ -209,7 +231,7 @@ private fun MovieCard(
                             else
                                 Icons.Outlined.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (isFavorite)
+                            tint = if (userId != null && isFavorite)
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.onSurface
@@ -221,9 +243,10 @@ private fun MovieCard(
     }
 }
 
-private fun MovieDto.toEntity(): MovieEntity {
+private fun MovieDto.toEntity(userId: String): MovieEntity {
     return MovieEntity(
         id = id,
+        userId = userId,
         title = title,
         posterPath = poster_path,
         rating = vote_average
