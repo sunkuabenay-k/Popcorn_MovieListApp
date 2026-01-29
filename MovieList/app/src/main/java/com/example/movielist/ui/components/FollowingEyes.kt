@@ -23,7 +23,7 @@ fun AnimatedEyes(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "eyePulse")
 
-    // Track where the eyes actually are on the screen
+
     var eyePosition by remember { mutableStateOf(Offset.Zero) }
 
     val alpha by infiniteTransition.animateFloat(
@@ -43,7 +43,7 @@ fun AnimatedEyes(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Use weight to ensure both eyes are exactly the same size
+
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             EyeWithEyebrow(pointerOffset, alpha, eyePosition)
         }
@@ -60,16 +60,13 @@ private fun EyeWithEyebrow(
     pupilAlpha: Float,
     eyeGroupPosition: Offset
 ) {
-    // Determine look direction relative to the eyes' position on screen
     val targetOffset = remember(pointerOffset, eyeGroupPosition) {
         if (pointerOffset != null) {
-            val sensitivity = 14f // Max pixels the pupil can move
+            val sensitivity = 14f
 
-            // Calculate vector from eyes to touch point
             val dx = pointerOffset.x - (eyeGroupPosition.x)
             val dy = pointerOffset.y - (eyeGroupPosition.y)
 
-            // Clamp the movement so it stays inside the white part
             Offset(
                 x = (dx / 20f).coerceIn(-sensitivity, sensitivity),
                 y = (dy / 20f).coerceIn(-sensitivity, sensitivity)
@@ -85,12 +82,10 @@ private fun EyeWithEyebrow(
         label = "pupilTracking"
     )
 
-    // Using AspectRatio ensures the eye stays circular regardless of screen width
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth(0.8f)
     ) {
-        // Eyebrow
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,18 +95,16 @@ private fun EyeWithEyebrow(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Eye Sclera (White part)
         Box(
             modifier = Modifier
-                .aspectRatio(1f) // Forces a perfect circle based on width
+                .aspectRatio(1f)
                 .background(Color.White, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // Pupil
             Box(
                 modifier = Modifier
                     .offset(animatedPupilOffset.x.dp, animatedPupilOffset.y.dp)
-                    .fillMaxSize(0.45f) // Pupil size relative to eye
+                    .fillMaxSize(0.45f)
                     .alpha(pupilAlpha)
                     .background(Color.Black, CircleShape)
             )

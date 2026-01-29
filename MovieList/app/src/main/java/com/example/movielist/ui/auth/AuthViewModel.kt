@@ -51,9 +51,28 @@ class AuthViewModel(
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
+    private val _userInterests = MutableStateFlow<List<String>>(emptyList())
+    val userInterests: StateFlow<List<String>> = _userInterests
+
+
     init {
         refreshAuth()
+        viewModelScope.launch {
+            currentUser.collect { user ->
+                if (user != null) {
+                    _userInterests.value =
+                        user.interests
+                            ?.split(",")
+                            ?.map { it.trim() }
+                            ?.filter { it.isNotEmpty() }
+                            ?: emptyList()
+                } else {
+                    _userInterests.value = emptyList()
+                }
+            }
+        }
     }
+
 
     // --- Save credentials locally ---
     fun saveCredentials(context: Context, email: String, pass: String) {
@@ -174,4 +193,19 @@ class AuthViewModel(
     // --- RESET STATES ---
     fun resetLoginState() { _loginState.value = LoginState() }
     fun resetRegisterState() { _registerState.value = RegisterState() }
+    // ADD THIS METHOD AT THE BOTTOM OF AuthViewModel
+
+    fun updateInterests(interests: List<String>) {
+        viewModelScope.launch {
+            val user = currentUser.value ?: return@launch
+            userRepository.updateUserInterests(
+                userId = user.id,
+                interests = interests
+            )
+            // refresh user so UI updates
+            _currentUser.value = userRepository.getUser()
+        }
+    }
+
+
 }

@@ -11,5 +11,8 @@ data class UserEntity(
     val password: String,
     val isLoggedIn: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val lastLogin: Long? = null
+    val lastLogin: Long? = null,
+
+//    val interests: List<String> = emptyList()
+    val interests: String? = ""
 )

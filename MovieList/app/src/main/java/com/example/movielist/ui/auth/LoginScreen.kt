@@ -46,15 +46,12 @@ fun LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
 
-    // Touch tracking for animated eyes
     var pointerOffset by remember { mutableStateOf<Offset?>(null) }
 
-    // Credential Manager helper
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val credentialHelper = remember { CredentialManagerHelper(context) }
 
-    // Save credentials on successful login
     LaunchedEffect(loginState.isSuccess) {
         if (loginState.isSuccess) {
             scope.launch {
@@ -63,8 +60,6 @@ fun LoginScreen(
                     password = loginState.password
                 )
             }
-            // Navigate to home/main screen if needed
-            // navController.navigate("home") { popUpTo(0) }
         }
     }
 

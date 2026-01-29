@@ -31,4 +31,16 @@ interface UserDao {
 
     @Delete
     suspend fun deleteUser(user: UserEntity)
+
+    @Query("UPDATE users SET interests = :interests WHERE id = :userId")
+    suspend fun updateUserInterests(userId: String, interests: String)
+
+    @Query("SELECT interests FROM users WHERE id = :userId")
+    suspend fun getUserInterests(userId: String): String?
+
+    @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
+    suspend fun getUserById(userId: String): UserEntity?
+
+
+
 }
