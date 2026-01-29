@@ -23,7 +23,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +33,6 @@ import androidx.navigation.NavController
 import com.example.movielist.R
 import com.example.movielist.ui.components.AnimatedEyes
 import com.example.movielist.ui.util.Responsive
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -48,21 +46,6 @@ fun LoginScreen(
 
     var pointerOffset by remember { mutableStateOf<Offset?>(null) }
 
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val credentialHelper = remember { CredentialManagerHelper(context) }
-
-    LaunchedEffect(loginState.isSuccess) {
-        if (loginState.isSuccess) {
-            scope.launch {
-                credentialHelper.saveLoginCredentials(
-                    email = loginState.email,
-                    password = loginState.password
-                )
-            }
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -71,7 +54,9 @@ fun LoginScreen(
                     onDragStart = { pointerOffset = it },
                     onDragEnd = { pointerOffset = null },
                     onDragCancel = { pointerOffset = null },
-                    onDrag = { change, _ -> pointerOffset = change.position }
+                    onDrag = { change, _ ->
+                        pointerOffset = change.position
+                    }
                 )
             }
             .pointerInput(Unit) {
@@ -93,6 +78,7 @@ fun LoginScreen(
                 .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Spacer(modifier = Modifier.height(Responsive.dp(0.06f)))
 
             // App Logo
@@ -114,7 +100,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.03f)))
 
-            // Animated eyes
             AnimatedEyes(
                 modifier = Modifier.fillMaxWidth(0.5f),
                 pointerOffset = pointerOffset
@@ -139,7 +124,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.05f)))
 
-            // Email input
             OutlinedTextField(
                 value = loginState.email,
                 onValueChange = viewModel::onLoginEmailChange,
@@ -157,7 +141,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Password input
             OutlinedTextField(
                 value = loginState.password,
                 onValueChange = viewModel::onLoginPasswordChange,
@@ -177,7 +160,7 @@ fun LoginScreen(
                                 Icons.Filled.Visibility
                             else
                                 Icons.Filled.VisibilityOff,
-                            contentDescription = if (showPassword) "Hide password" else "Show password"
+                            contentDescription = null
                         )
                     }
                 },
@@ -190,10 +173,8 @@ fun LoginScreen(
                 }
             )
 
-            // Error box
             loginState.error?.let { errorMsg ->
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -207,7 +188,6 @@ fun LoginScreen(
                     Text(
                         text = errorMsg,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        fontSize = Responsive.sp(0.018f),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Medium
                     )
@@ -216,14 +196,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login button
             Button(
                 onClick = {
                     keyboardController?.hide()
-                    viewModel.login(
-                        loginState.email,
-                        loginState.password
-                    )
+                    viewModel.login(loginState.email, loginState.password)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -246,9 +222,6 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Navigate to register
             TextButton(
                 onClick = {
                     viewModel.resetLoginState()

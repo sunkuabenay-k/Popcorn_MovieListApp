@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
@@ -34,15 +33,9 @@ fun RegisterScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     val keyboard = LocalSoftwareKeyboardController.current
-    val context = LocalContext.current
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            viewModel.saveCredentials(
-                context = context,
-                email = state.email,
-                pass = state.password
-            )
             showSuccessDialog = true
         }
     }

@@ -95,12 +95,14 @@ private fun EyeWithEyebrow(
 
         Spacer(modifier = Modifier.height(6.dp))
 
+        // Eye Sclera (White part)
         Box(
             modifier = Modifier
                 .aspectRatio(1f)
                 .background(Color.White, CircleShape),
             contentAlignment = Alignment.Center
         ) {
+            // Pupil
             Box(
                 modifier = Modifier
                     .offset(animatedPupilOffset.x.dp, animatedPupilOffset.y.dp)
