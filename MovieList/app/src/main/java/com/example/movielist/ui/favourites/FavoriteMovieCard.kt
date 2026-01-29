@@ -45,7 +45,6 @@ fun FavoriteMovieCard(
     ) {
         Column {
 
-            // 🎬 Poster
             AsyncImage(
                 model = IMAGE_BASE_URL + movie.posterPath,
                 contentDescription = movie.title,
@@ -55,14 +54,12 @@ fun FavoriteMovieCard(
                 contentScale = ContentScale.Crop
             )
 
-            // 🔽 Bottom content
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp)
             ) {
 
-                // Title + Delete (same row)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -90,7 +87,6 @@ fun FavoriteMovieCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Rating row
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {

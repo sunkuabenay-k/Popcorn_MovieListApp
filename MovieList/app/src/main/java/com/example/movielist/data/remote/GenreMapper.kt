@@ -18,7 +18,7 @@ object GenreMapper {
         "mystery" to 9648,
         "romance" to 10749,
         "science fiction" to 878,
-        "sci-fi" to 878,          // ⭐ THIS FIXES YOUR CASE
+        "sci-fi" to 878,
         "thriller" to 53,
         "war" to 10752,
         "western" to 37

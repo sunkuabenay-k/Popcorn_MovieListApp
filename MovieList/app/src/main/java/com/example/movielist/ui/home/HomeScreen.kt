@@ -47,7 +47,6 @@ fun HomeScreen(
                 Text("Discover Movies", fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
 
-            /* 🔍 SEARCH BAR */
             item {
                 OutlinedTextField(
                     value = uiState.searchQuery,
@@ -58,7 +57,6 @@ fun HomeScreen(
                 )
             }
 
-            /* ⭐ FILTER CHIPS */
             item {
                 RatingFilterRow(
                     selected = uiState.minRatingFilter,
@@ -66,7 +64,6 @@ fun HomeScreen(
                 )
             }
 
-            /* 🔥 TRENDING */
             if (uiState.filteredTrending.isNotEmpty()) {
                 item {
                     SectionTitle("Trending")
@@ -99,7 +96,6 @@ fun HomeScreen(
             }
 
 
-            /* 🎯 TOP RATED */
             if (uiState.filteredTopRated.isNotEmpty()) {
                 item {
                     SectionTitle("Top Rated")
@@ -115,8 +111,6 @@ fun HomeScreen(
         }
     }
 }
-
-/* ---------------- UI HELPERS ---------------- */
 
 @Composable
 private fun SectionTitle(text: String) {

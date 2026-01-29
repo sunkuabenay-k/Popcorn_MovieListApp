@@ -33,10 +33,8 @@ fun ProfileScreen(
     val currentUser by viewModel.currentUser.collectAsState()
     val dbInterests by viewModel.userInterests.collectAsState(initial = emptyList())
 
-    // 🔥 Editable local copy (THIS FIXES YOUR ERROR)
     var editableInterests by remember { mutableStateOf(dbInterests) }
 
-    // Sync local state when DB changes
     LaunchedEffect(dbInterests) {
         editableInterests = dbInterests
     }
@@ -74,7 +72,6 @@ fun ProfileScreen(
             contentPadding = PaddingValues(vertical = 24.dp)
         ) {
             item {
-                // PROFILE IMAGE
                 Box(
                     modifier = Modifier
                         .size(if (isLandscape) 80.dp else 120.dp)

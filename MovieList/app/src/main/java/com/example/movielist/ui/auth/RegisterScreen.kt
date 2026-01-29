@@ -120,7 +120,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            //Password Field with error highlighting
             OutlinedTextField(
                 value = state.password,
                 onValueChange = viewModel::onRegisterPasswordChange,
@@ -151,7 +150,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            //Confirm Password Field with error highlighting
             OutlinedTextField(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onRegisterConfirmPasswordChange,

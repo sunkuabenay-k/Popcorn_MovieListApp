@@ -120,7 +120,6 @@ fun MovieDetailsScreen(
                         Text(movie.overview, fontSize = 14.sp)
                     }
 
-                    // 🎬 MORE LIKE THIS
                     if (uiState.similarMovies.isNotEmpty()) {
                         item {
                             Spacer(Modifier.height(24.dp))

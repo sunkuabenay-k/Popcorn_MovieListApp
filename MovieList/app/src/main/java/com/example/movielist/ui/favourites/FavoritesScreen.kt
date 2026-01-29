@@ -23,7 +23,6 @@ fun FavoritesScreen(
     navController: NavHostController,
     viewModel: FavoritesViewModel
 ) {
-    // ✅ Type is now known
     val favorites: List<MovieEntity> by viewModel
         .favoriteMovies
         .collectAsState(initial = emptyList())
@@ -74,7 +73,7 @@ fun FavoritesScreen(
             ) {
                 items(
                     items = favorites,
-                    key = { movie -> movie.id } // ✅ movie is MovieEntity
+                    key = { movie -> movie.id }
                 ) { movie ->
                     FavoriteMovieCard(
                         movie = movie,
