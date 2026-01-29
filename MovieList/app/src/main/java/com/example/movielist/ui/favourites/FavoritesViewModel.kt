@@ -11,10 +11,11 @@ class FavoritesViewModel(
     private val movieRepository: MovieRepositoryImpl
 ) : ViewModel() {
 
+    // ✅ MUST be Flow<List<MovieEntity>>
     val favoriteMovies: Flow<List<MovieEntity>> =
         movieRepository.getFavoriteMovies()
 
-    fun removeFavorite(movie: MovieEntity) {
+    fun removeFromFavorites(movie: MovieEntity) {
         viewModelScope.launch {
             movieRepository.removeFromFavorites(movie)
         }

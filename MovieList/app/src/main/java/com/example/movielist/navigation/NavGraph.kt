@@ -54,7 +54,7 @@ fun AppNavGraph(
 
         composable(Routes.HOME) {
             val homeViewModel: HomeViewModel = viewModel(
-                factory = HomeViewModelFactory(movieRepository)
+                factory = HomeViewModelFactory(movieRepository, userRepository)
             )
 
             HomeScreen(
@@ -62,6 +62,8 @@ fun AppNavGraph(
                 viewModel = homeViewModel
             )
         }
+
+
 
         composable(Routes.FAVORITES) {
             val favoritesViewModel: FavoritesViewModel = viewModel(

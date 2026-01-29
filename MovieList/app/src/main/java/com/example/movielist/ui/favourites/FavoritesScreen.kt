@@ -2,33 +2,29 @@
 
 package com.example.movielist.ui.favourites
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import com.example.movielist.data.local.MovieEntity
 import com.example.movielist.navigation.BottomNavItem
-import com.example.movielist.navigation.Routes
 import com.example.movielist.ui.components.BottomNavigationBar
+
 @Composable
 fun FavoritesScreen(
     navController: NavHostController,
     viewModel: FavoritesViewModel
 ) {
-    val favorites by viewModel
+    // ✅ Type is now known
+    val favorites: List<MovieEntity> by viewModel
         .favoriteMovies
         .collectAsState(initial = emptyList())
 
@@ -41,7 +37,12 @@ fun FavoritesScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Favorites") }
+                title = {
+                    Text(
+                        text = "Favorites",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             )
         },
         bottomBar = {
@@ -59,7 +60,7 @@ fun FavoritesScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No favourites yet ❤️")
+                Text("No favourites yet ❤️", fontSize = 16.sp)
             }
         } else {
             LazyVerticalGrid(
@@ -71,8 +72,17 @@ fun FavoritesScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(favorites) { movie ->
-                    FavoriteMovieCard(movie, navController)
+                items(
+                    items = favorites,
+                    key = { movie -> movie.id } // ✅ movie is MovieEntity
+                ) { movie ->
+                    FavoriteMovieCard(
+                        movie = movie,
+                        navController = navController,
+                        onDeleteClick = {
+                            viewModel.removeFromFavorites(it)
+                        }
+                    )
                 }
             }
         }

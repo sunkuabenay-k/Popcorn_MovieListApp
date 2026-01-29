@@ -4,6 +4,8 @@ package com.example.movielist.ui.details
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -20,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.movielist.ui.components.SimilarMovieCard
 
 private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
@@ -32,25 +35,19 @@ fun MovieDetailsScreen(
 
     when {
         uiState.isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
 
         uiState.movie == null -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Failed to load movie details")
             }
         }
 
         else -> {
-            val movie = uiState.movie!!  // ✅ SAFE UNWRAP
+            val movie = uiState.movie!!
 
             Scaffold(
                 topBar = {
@@ -68,11 +65,7 @@ fun MovieDetailsScreen(
                                         Icons.Filled.Favorite
                                     else
                                         Icons.Outlined.FavoriteBorder,
-                                    contentDescription = "Favorite",
-                                    tint = if (uiState.isFavorite)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurface
+                                    contentDescription = "Favorite"
                                 )
                             }
                         }
@@ -107,37 +100,13 @@ fun MovieDetailsScreen(
 
                     item {
                         Spacer(Modifier.height(6.dp))
-                        Text(
-                            buildMetaText(movie),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text(buildMetaText(movie), fontSize = 13.sp)
                     }
 
                     item {
                         Spacer(Modifier.height(16.dp))
-                        Button(
-                            onClick = {},
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
+                        Button(onClick = {}, modifier = Modifier.fillMaxWidth()) {
                             Text("▶ Play Now")
-                        }
-                    }
-
-                    item {
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedButton(
-                            onClick = viewModel::toggleFavorite,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                if (uiState.isFavorite)
-                                    "Remove from My List"
-                                else
-                                    "Add to My List"
-                            )
                         }
                     }
 
@@ -148,10 +117,34 @@ fun MovieDetailsScreen(
 
                     item {
                         Spacer(Modifier.height(6.dp))
-                        Text(movie.overview, fontSize = 14.sp, lineHeight = 20.sp)
+                        Text(movie.overview, fontSize = 14.sp)
                     }
 
-                    item { Spacer(Modifier.height(24.dp)) }
+                    // 🎬 MORE LIKE THIS
+                    if (uiState.similarMovies.isNotEmpty()) {
+                        item {
+                            Spacer(Modifier.height(24.dp))
+                            Text(
+                                "More Like This",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        item {
+                            Spacer(Modifier.height(12.dp))
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(uiState.similarMovies) { similar ->
+                                    SimilarMovieCard(
+                                        movie = similar,
+                                        navController = navController
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    item { Spacer(Modifier.height(32.dp)) }
                 }
             }
         }

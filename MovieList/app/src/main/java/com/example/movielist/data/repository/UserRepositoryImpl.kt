@@ -83,4 +83,23 @@ class UserRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun updateUserInterests(
+        userId: String,
+        interests: List<String>
+    ) {
+        val csv = interests.joinToString(",")
+        userDao.updateUserInterests(userId, csv)
+    }
+
+
+    override suspend fun getUserInterests(userId: String): List<String> {
+        return userDao
+            .getUserInterests(userId)
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?: emptyList()
+    }
+
 }

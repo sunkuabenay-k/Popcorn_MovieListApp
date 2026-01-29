@@ -1,5 +1,6 @@
 package com.example.movielist.ui.favourites
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
@@ -21,13 +22,17 @@ import com.example.movielist.data.local.MovieEntity
 import com.example.movielist.navigation.BottomNavItem
 import com.example.movielist.navigation.Routes
 import com.example.movielist.ui.components.BottomNavigationBar
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.foundation.shape.CircleShape
+
 
 private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
 @Composable
 fun FavoriteMovieCard(
     movie: MovieEntity,
-    navController: NavHostController
+    navController: NavHostController,
+    onDeleteClick: (MovieEntity) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -39,6 +44,8 @@ fun FavoriteMovieCard(
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
+
+            // 🎬 Poster
             AsyncImage(
                 model = IMAGE_BASE_URL + movie.posterPath,
                 contentDescription = movie.title,
@@ -48,17 +55,45 @@ fun FavoriteMovieCard(
                 contentScale = ContentScale.Crop
             )
 
-            Column(modifier = Modifier.padding(10.dp)) {
-                Text(
-                    text = movie.title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
-                )
+            // 🔽 Bottom content
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            ) {
+
+                // Title + Delete (same row)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = movie.title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    IconButton(
+                        onClick = { onDeleteClick(movie) },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Remove from favorites",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // Rating row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         imageVector = Icons.Filled.Favorite,
                         contentDescription = null,
@@ -66,7 +101,10 @@ fun FavoriteMovieCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = movie.rating.toString(), fontSize = 12.sp)
+                    Text(
+                        text = String.format("%.1f", movie.rating),
+                        fontSize = 12.sp
+                    )
                 }
             }
         }

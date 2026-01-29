@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.movielist.BuildConfig
 import com.example.movielist.data.local.MovieEntity
 import com.example.movielist.data.remote.MovieDetailsDto
+import com.example.movielist.data.remote.MovieDto
 import com.example.movielist.data.remote.RetrofitInstance
 import com.example.movielist.repository.MovieRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,13 +37,28 @@ class MovieDetailsViewModel(
                     apiKey = BuildConfig.TMDB_API_KEY
                 )
 
-                val favorite = movieRepository.isFavoriteOnce(movieId)
+                val isFav = movieRepository.isFavoriteOnce(movieId)
 
-                _uiState.value = _uiState.value.copy(
+                // 🎯 Fetch similar movies by genre
+                val genreId = movie.genres.firstOrNull()?.id
+                val similarMovies = genreId?.let {
+                    RetrofitInstance.api
+                        .getMoviesByGenre(
+                            apiKey = BuildConfig.TMDB_API_KEY,
+                            genreId = it
+                        )
+                        .results
+                        .shuffled()
+                        .take(5)
+                } ?: emptyList()
+
+                _uiState.value = MovieDetailsUiState(
                     isLoading = false,
                     movie = movie,
-                    isFavorite = favorite
+                    isFavorite = isFav,
+                    similarMovies = similarMovies
                 )
+
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -76,7 +92,7 @@ class MovieDetailsViewModel(
     }
 }
 
-/** Mapper */
+/* ---------- Mapper ---------- */
 private fun MovieDetailsDto.toEntity(userId: String): MovieEntity {
     return MovieEntity(
         id = id,

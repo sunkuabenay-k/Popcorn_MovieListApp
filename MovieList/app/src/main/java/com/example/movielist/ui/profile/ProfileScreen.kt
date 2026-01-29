@@ -25,13 +25,22 @@ import com.example.movielist.ui.components.BottomNavigationBar
 import com.example.movielist.ui.util.Responsive
 import java.text.SimpleDateFormat
 import java.util.*
-
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
     viewModel: AuthViewModel
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
+    val dbInterests by viewModel.userInterests.collectAsState(initial = emptyList())
+
+    // 🔥 Editable local copy (THIS FIXES YOUR ERROR)
+    var editableInterests by remember { mutableStateOf(dbInterests) }
+
+    // Sync local state when DB changes
+    LaunchedEffect(dbInterests) {
+        editableInterests = dbInterests
+    }
+
     var showDeleteDialog by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -53,13 +62,9 @@ fun ProfileScreen(
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(
-                navController = navController,
-                items = bottomItems
-            )
+            BottomNavigationBar(navController, bottomItems)
         }
     ) { paddingValues ->
-        // Use LazyColumn to ensure the screen is scrollable in landscape or on small devices
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -91,8 +96,7 @@ fun ProfileScreen(
                     Text(
                         text = user.name,
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = Responsive.sp(if (isLandscape) 0.03f else 0.04f)
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = user.email,
@@ -102,13 +106,11 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // DETAIL CARD
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        ),
-                        shape = MaterialTheme.shapes.large
+                        )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             ProfileInfoItem(
@@ -116,15 +118,11 @@ fun ProfileScreen(
                                 value = formatDate(user.createdAt)
                             )
 
-                            user.lastLogin?.let { lastLogin ->
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 12.dp),
-                                    thickness = 0.5.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
+                            user.lastLogin?.let {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                                 ProfileInfoItem(
                                     label = "Last Login",
-                                    value = formatDate(lastLogin)
+                                    value = formatDate(it)
                                 )
                             }
                         }
@@ -133,18 +131,24 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // ACTION BUTTONS
+                MovieInterestsSection(
+                    interests = editableInterests,
+                    onAddInterest = { editableInterests = editableInterests + it },
+                    onRemoveInterest = { editableInterests = editableInterests - it },
+                    onSave = {
+                        viewModel.updateInterests(editableInterests)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
                 Column(
-                    modifier = Modifier.widthIn(max = 400.dp), // Prevents buttons from being too wide on tablets
+                    modifier = Modifier.widthIn(max = 400.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Button(
                         onClick = { viewModel.logout() },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        shape = MaterialTheme.shapes.medium
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Log Out")
                     }
@@ -152,11 +156,7 @@ fun ProfileScreen(
                     OutlinedButton(
                         onClick = { showDeleteDialog = true },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-                        shape = MaterialTheme.shapes.medium
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
                         Text("Delete Account")
                     }
@@ -169,17 +169,14 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Delete Account?") },
-            text = { Text("This action cannot be undone. All your saved data and favorites will be permanently removed.") },
+            text = { Text("This action cannot be undone.") },
             confirmButton = {
                 Button(
                     onClick = {
                         showDeleteDialog = false
                         viewModel.deleteAccount()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
+                    }
+                ) { Text("Delete") }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
@@ -189,6 +186,7 @@ fun ProfileScreen(
         )
     }
 }
+
 
 @Composable
 fun ProfileInfoItem(label: String, value: String) {

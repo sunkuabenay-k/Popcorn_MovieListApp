@@ -22,4 +22,17 @@ interface MovieApi {
         @Query("api_key") apiKey: String
     ): MovieDetailsDto
 
+    @GET("discover/movie")
+    suspend fun getMoviesByGenre(
+        @Query("api_key") apiKey: String,
+        @Query("with_genres") genreId: Int,
+        @Query("page") page: Int = 1
+    ): MovieResponse
+
+    @GET("discover/movie")
+    suspend fun discoverMovies(
+        @Query("api_key") apiKey: String,
+        @Query("with_genres") withGenres: String
+    ): MovieResponse
+
 }
