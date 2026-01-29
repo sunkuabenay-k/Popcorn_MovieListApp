@@ -95,6 +95,7 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(Responsive.dp(0.06f)))
 
+            // App Logo
             Box(
                 modifier = Modifier
                     .size(Responsive.dp(0.12f))
@@ -113,6 +114,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.03f)))
 
+            // Animated eyes
             AnimatedEyes(
                 modifier = Modifier.fillMaxWidth(0.5f),
                 pointerOffset = pointerOffset
@@ -137,6 +139,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.05f)))
 
+            // Email input
             OutlinedTextField(
                 value = loginState.email,
                 onValueChange = viewModel::onLoginEmailChange,
@@ -154,6 +157,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Password input
             OutlinedTextField(
                 value = loginState.password,
                 onValueChange = viewModel::onLoginPasswordChange,
@@ -186,6 +190,7 @@ fun LoginScreen(
                 }
             )
 
+            // Error box
             loginState.error?.let { errorMsg ->
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -211,6 +216,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Login button
             Button(
                 onClick = {
                     keyboardController?.hide()
@@ -242,6 +248,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Navigate to register
             TextButton(
                 onClick = {
                     viewModel.resetLoginState()

@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -19,6 +22,9 @@ fun AnimatedEyes(
     pointerOffset: Offset?
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "eyePulse")
+
+
+    var eyePosition by remember { mutableStateOf(Offset.Zero) }
 
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.7f,
@@ -31,24 +37,39 @@ fun AnimatedEyes(
     )
 
     Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = modifier.onGloballyPositioned { coordinates ->
+            eyePosition = coordinates.positionInRoot()
+        },
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        EyeWithEyebrow(pointerOffset, alpha)
-        EyeWithEyebrow(pointerOffset, alpha)
+
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            EyeWithEyebrow(pointerOffset, alpha, eyePosition)
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            EyeWithEyebrow(pointerOffset, alpha, eyePosition)
+        }
     }
 }
 
 @Composable
-private fun EyeWithEyebrow(pointerOffset: Offset?, pupilAlpha: Float) {
-    val pupilMovementLimit = 12f
-
-    val targetOffset = remember(pointerOffset) {
+private fun EyeWithEyebrow(
+    pointerOffset: Offset?,
+    pupilAlpha: Float,
+    eyeGroupPosition: Offset
+) {
+    val targetOffset = remember(pointerOffset, eyeGroupPosition) {
         if (pointerOffset != null) {
+            val sensitivity = 14f
+
+            val dx = pointerOffset.x - (eyeGroupPosition.x)
+            val dy = pointerOffset.y - (eyeGroupPosition.y)
+
             Offset(
-                x = (pointerOffset.x / 100f).coerceIn(-pupilMovementLimit, pupilMovementLimit),
-                y = (pointerOffset.y / 100f).coerceIn(-pupilMovementLimit, pupilMovementLimit)
+                x = (dx / 20f).coerceIn(-sensitivity, sensitivity),
+                y = (dy / 20f).coerceIn(-sensitivity, sensitivity)
             )
         } else {
             Offset.Zero
@@ -61,28 +82,29 @@ private fun EyeWithEyebrow(pointerOffset: Offset?, pupilAlpha: Float) {
         label = "pupilTracking"
     )
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth(0.8f)
+    ) {
         Box(
             modifier = Modifier
-                .width(45.dp)
+                .fillMaxWidth()
                 .height(6.dp)
-                .background(Color.Black, RoundedCornerShape(3.dp))
+                .background(Color.Black, RoundedCornerShape(50))
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(6.dp))
 
         Box(
             modifier = Modifier
-                .size(55.dp)
+                .aspectRatio(1f)
                 .background(Color.White, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .offset(animatedPupilOffset.x.dp, animatedPupilOffset.y.dp)
-                    .size(22.dp)
+                    .fillMaxSize(0.45f)
                     .alpha(pupilAlpha)
                     .background(Color.Black, CircleShape)
             )
