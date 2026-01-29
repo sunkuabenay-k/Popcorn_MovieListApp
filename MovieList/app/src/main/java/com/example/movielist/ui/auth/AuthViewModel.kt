@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// --- Login State ---
 data class LoginState(
     val email: String = "",
     val password: String = "",
@@ -19,7 +18,6 @@ data class LoginState(
     val isSuccess: Boolean = false
 )
 
-// --- Register State with validation flags ---
 data class RegisterState(
     val name: String = "",
     val email: String = "",
@@ -74,7 +72,6 @@ class AuthViewModel(
     }
 
 
-    // --- Save credentials locally ---
     fun saveCredentials(context: Context, email: String, pass: String) {
         viewModelScope.launch {
             val helper = CredentialManagerHelper(context)
@@ -82,7 +79,6 @@ class AuthViewModel(
         }
     }
 
-    // --- Refresh current user ---
     private fun refreshAuth() {
         viewModelScope.launch {
             val user = userRepository.getUser()
@@ -92,7 +88,6 @@ class AuthViewModel(
         }
     }
 
-    // --- LOGIN ---
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = _loginState.value.copy(isLoading = true, error = null)
@@ -111,7 +106,6 @@ class AuthViewModel(
         }
     }
 
-    // --- REGISTER with password validation ---
     fun register(name: String, email: String, pass: String, confirm: String) {
         val passwordPattern = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#\$%^&+=!])(?=\\S+\$).{8,}$".toRegex()
         val isPasswordValid = passwordPattern.matches(pass)
@@ -151,7 +145,6 @@ class AuthViewModel(
         }
     }
 
-    // --- LOGOUT ---
     fun logout() {
         viewModelScope.launch {
             userRepository.logout()
@@ -162,7 +155,6 @@ class AuthViewModel(
         }
     }
 
-    // --- DELETE ACCOUNT ---
     fun deleteAccount() {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
@@ -180,20 +172,16 @@ class AuthViewModel(
         }
     }
 
-    // --- LOGIN STATE UPDATES ---
     fun onLoginEmailChange(email: String) { _loginState.value = _loginState.value.copy(email = email) }
     fun onLoginPasswordChange(password: String) { _loginState.value = _loginState.value.copy(password = password) }
 
-    // --- REGISTER STATE UPDATES ---
     fun onRegisterNameChange(name: String) { _registerState.value = _registerState.value.copy(name = name) }
     fun onRegisterEmailChange(email: String) { _registerState.value = _registerState.value.copy(email = email) }
     fun onRegisterPasswordChange(password: String) { _registerState.value = _registerState.value.copy(password = password) }
     fun onRegisterConfirmPasswordChange(confirmPassword: String) { _registerState.value = _registerState.value.copy(confirmPassword = confirmPassword) }
 
-    // --- RESET STATES ---
     fun resetLoginState() { _loginState.value = LoginState() }
     fun resetRegisterState() { _registerState.value = RegisterState() }
-    // ADD THIS METHOD AT THE BOTTOM OF AuthViewModel
 
     fun updateInterests(interests: List<String>) {
         viewModelScope.launch {
@@ -202,7 +190,6 @@ class AuthViewModel(
                 userId = user.id,
                 interests = interests
             )
-            // refresh user so UI updates
             _currentUser.value = userRepository.getUser()
         }
     }

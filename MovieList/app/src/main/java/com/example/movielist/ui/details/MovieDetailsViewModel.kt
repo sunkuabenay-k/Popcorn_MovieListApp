@@ -39,7 +39,6 @@ class MovieDetailsViewModel(
 
                 val isFav = movieRepository.isFavoriteOnce(movieId)
 
-                // 🎯 Fetch similar movies by genre
                 val genreId = movie.genres.firstOrNull()?.id
                 val similarMovies = genreId?.let {
                     RetrofitInstance.api
@@ -92,7 +91,6 @@ class MovieDetailsViewModel(
     }
 }
 
-/* ---------- Mapper ---------- */
 private fun MovieDetailsDto.toEntity(userId: String): MovieEntity {
     return MovieEntity(
         id = id,

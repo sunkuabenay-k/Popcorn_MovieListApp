@@ -35,7 +35,6 @@ fun MovieInterestsSection(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔹 Chips
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -62,7 +61,6 @@ fun MovieInterestsSection(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Add new interest
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -89,7 +87,6 @@ fun MovieInterestsSection(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 🔹 Save
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth()

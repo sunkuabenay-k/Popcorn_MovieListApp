@@ -44,7 +44,6 @@ fun LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
 
-    // Touch tracking for animated eyes
     var pointerOffset by remember { mutableStateOf<Offset?>(null) }
 
     Box(

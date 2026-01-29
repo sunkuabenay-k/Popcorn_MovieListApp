@@ -46,7 +46,6 @@ fun MovieCard(
     ) {
         Column {
 
-            // 🎬 Poster
             AsyncImage(
                 model = IMAGE_BASE_URL + movie.poster_path,
                 contentDescription = movie.title,
@@ -56,15 +55,13 @@ fun MovieCard(
                 contentScale = ContentScale.Crop
             )
 
-            // 📄 Info section (FIXED HEIGHT)
             Column(
                 modifier = Modifier
-                    .height(86.dp) // ⭐ important
+                    .height(86.dp)
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.Top
             ) {
 
-                // 🎞 Title
                 Text(
                     text = movie.title,
                     fontSize = 13.sp,
@@ -76,19 +73,17 @@ fun MovieCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // ⭐ Rating + ❤️ Favorite
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // Rating
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107), // gold star
+                            tint = Color(0xFFFFC107),
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -99,7 +94,6 @@ fun MovieCard(
                         )
                     }
 
-                    // Favorite button
                     IconButton(
                         onClick = { viewModel.toggleFavorite(movie) },
                         modifier = Modifier.size(28.dp)

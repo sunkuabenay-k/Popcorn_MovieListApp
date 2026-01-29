@@ -85,13 +85,11 @@ class HomeViewModel(
         }
     }
 
-    /* 🔍 SEARCH */
     fun onSearchQueryChange(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
         applyFilters()
     }
 
-    /* 🎚 FILTER */
     fun onRatingFilterChange(rating: Double) {
         _uiState.update { it.copy(minRatingFilter = rating) }
         applyFilters()
@@ -116,7 +114,6 @@ class HomeViewModel(
         }
     }
 
-    /* ❤️ FAVORITES */
     fun isFavorite(movieId: Int): Flow<Boolean> =
         movieRepository.isFavorite(movieId).distinctUntilChanged()
 

@@ -34,7 +34,6 @@ fun AppNavGraph(
 
     val authState by authViewModel.authState.collectAsState()
 
-    // ✅ NAV HOST
     NavHost(
         navController = navController,
         startDestination = Routes.SPLASH

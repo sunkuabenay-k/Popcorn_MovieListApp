@@ -11,7 +11,6 @@ class FavoritesViewModel(
     private val movieRepository: MovieRepositoryImpl
 ) : ViewModel() {
 
-    // ✅ MUST be Flow<List<MovieEntity>>
     val favoriteMovies: Flow<List<MovieEntity>> =
         movieRepository.getFavoriteMovies()
 
