@@ -66,4 +66,40 @@ class UserRepositoryImpl(
     override fun currentUserFlow(): Flow<UserEntity> {
         return userDao.observeLoggedInUser()
     }
+
+    override suspend fun deleteAccount(): Result<Unit> {
+        return try {
+            val currentUser = userDao.getLoggedInUser()
+            if (currentUser != null) {
+                // 1. Delete the user from DB
+                userDao.deleteUser(currentUser)
+                // 2. Ensure any session flags are cleared (logout)
+                userDao.logoutAllUsers()
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("No user logged in"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateUserInterests(
+        userId: String,
+        interests: List<String>
+    ) {
+        val csv = interests.joinToString(",")
+        userDao.updateUserInterests(userId, csv)
+    }
+
+
+    override suspend fun getUserInterests(userId: String): List<String> {
+        return userDao
+            .getUserInterests(userId)
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?: emptyList()
+    }
+
 }

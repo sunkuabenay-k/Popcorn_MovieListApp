@@ -44,13 +44,12 @@ fun LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
 
-    // State to hold touch position
+    // Touch tracking for animated eyes
     var pointerOffset by remember { mutableStateOf<Offset?>(null) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // CAPTURE TOUCH INPUT HERE
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = { pointerOffset = it },
@@ -83,11 +82,14 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.06f)))
 
-            // Logo Box
+            // App Logo
             Box(
                 modifier = Modifier
                     .size(Responsive.dp(0.12f))
-                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -99,8 +101,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.03f)))
 
-            // Pass the pointer offset to the eyes
-            // We use fillMaxWidth with a ratio to keep it sized reasonably
             AnimatedEyes(
                 modifier = Modifier.fillMaxWidth(0.5f),
                 pointerOffset = pointerOffset
@@ -125,14 +125,11 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(Responsive.dp(0.05f)))
 
-            // --- INPUT FIELDS ---
-            // REMOVED fixed .height() modifiers to allow text to center vertically
-
             OutlinedTextField(
                 value = loginState.email,
                 onValueChange = viewModel::onLoginEmailChange,
                 label = { Text("Email or Username") },
-                modifier = Modifier.fillMaxWidth(), // Removed fixed height
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
@@ -151,13 +148,19 @@ fun LoginScreen(
                 label = { Text("Password") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(passwordFocusRequester), // Removed fixed height
+                    .focusRequester(passwordFocusRequester),
                 shape = RoundedCornerShape(12.dp),
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (showPassword)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
-                            imageVector = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            imageVector = if (showPassword)
+                                Icons.Filled.Visibility
+                            else
+                                Icons.Filled.VisibilityOff,
                             contentDescription = null
                         )
                     }
@@ -171,13 +174,25 @@ fun LoginScreen(
                 }
             )
 
-            if (loginState.error != null) {
-                Text(
-                    text = loginState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = Responsive.sp(0.018f),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+            loginState.error?.let { errorMsg ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = errorMsg,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -189,7 +204,7 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp), // Buttons are okay with fixed height, usually 50-56dp
+                    .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !loginState.isLoading
             ) {

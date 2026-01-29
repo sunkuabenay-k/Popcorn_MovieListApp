@@ -11,4 +11,8 @@ interface UserRepository {
     suspend fun logout()
     suspend fun isEmailTaken(email: String): Boolean
     fun currentUserFlow(): Flow<UserEntity>
+    suspend fun deleteAccount(): Result<Unit>
+    suspend fun updateUserInterests(userId: String, interests: List<String>)
+    suspend fun getUserInterests(userId: String): List<String>
+
 }
